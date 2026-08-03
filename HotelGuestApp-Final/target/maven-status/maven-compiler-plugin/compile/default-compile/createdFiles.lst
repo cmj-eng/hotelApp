@@ -16,6 +16,7 @@ com/hotelguest/ui/DataPortTab.class
 com/hotelguest/ui/FinanceTab$1.class
 com/hotelguest/Main.class
 com/hotelguest/model/GuestStore.class
+com/hotelguest/model/GuestStore$2.class
 com/hotelguest/ui/GuestListTab$2.class
 com/hotelguest/model/Guest$GuestFlag.class
 com/hotelguest/ui/HistoryTab.class
