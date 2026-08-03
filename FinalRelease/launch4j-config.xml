@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Launch4j configuration — wraps HotelGuestApp.jar into HotelGuestApp.exe
+  with your custom icon for the Windows taskbar and Taskbar.
+
+  HOW TO USE:
+  ──────────────────────────────────────────────────────────────────────────
+  1. Download Launch4j (free) from:
+       http://launch4j.sourceforge.net
+     → Windows: run the installer
+     → macOS:   open the .dmg, drag Launch4j to Applications
+
+  2. Convert your icon.png to icon.ico
+     Free online converter: https://convertico.com
+     (upload icon.png, download icon.ico)
+
+  3. Place these files all in the SAME folder:
+       HotelGuestApp.jar
+       icon.ico
+       launch4j-config.xml   ← this file
+
+  4a. GUI method (easiest):
+       • Open Launch4j
+       • File → Open config → select launch4j-config.xml
+       • Check the paths look right
+       • Click the gear icon (Build wrapper) → HotelGuestApp.exe is created
+
+  4b. Command-line method:
+       launch4j.exe launch4j-config.xml      (Windows)
+       launch4j     launch4j-config.xml      (macOS/Linux)
+
+  5. Distribute HotelGuestApp.exe + HotelGuestApp.jar together
+     (the .exe is just a launcher; it still needs the .jar next to it)
+     OR set <jar> to embed the jar inside the exe (see note below).
+  ──────────────────────────────────────────────────────────────────────────
+-->
+<launch4jConfig>
+
+  <!-- ── Output ─────────────────────────────────────────── -->
+  <dontWrapJar>false</dontWrapJar>
+  <!-- Set to false to EMBED the jar inside the exe (single file, larger) -->
+  <!-- Set to true if you want to keep jar + exe separate (smaller exe)   -->
+
+  <headerType>gui</headerType>
+  <!-- "gui" = no console window. Use "console" if you want to see logs.  -->
+
+  <outfile>HotelGuestApp.exe</outfile>
+  <jar>HotelGuestApp.jar</jar>
+
+  <!-- ── Icon ───────────────────────────────────────────── -->
+  <icon>icon.ico</icon>
+  <!-- Must be a .ico file. Convert from PNG at https://convertico.com    -->
+
+  <!-- ── Metadata ───────────────────────────────────────── -->
+  <versionInfo>
+    <fileVersion>1.0.0.0</fileVersion>
+    <txtFileVersion>1.0</txtFileVersion>
+    <fileDescription>Hotel Guest Manager</fileDescription>
+    <copyright>Berry Bagmeijer</copyright>
+    <productVersion>1.0.0.0</productVersion>
+    <txtProductVersion>1.0</txtProductVersion>
+    <productName>Hotel Guest Manager</productName>
+    <internalName>HotelGuestApp</internalName>
+    <originalFilename>HotelGuestApp.exe</originalFilename>
+  </versionInfo>
+
+  <!-- ── Java requirement ───────────────────────────────── -->
+  <jre>
+    <path>%JAVA_HOME%</path>
+    <!-- Minimum Java version required -->
+    <minVersion>17</minVersion>
+    <!-- Download URL shown to user if Java is missing -->
+    <downloadUrl>https://adoptium.net</downloadUrl>
+  </jre>
+
+  <!-- ── Main class ─────────────────────────────────────── -->
+  <classPath>
+    <mainClass>com.hotelguest.Main</mainClass>
+  </classPath>
+
+  <!-- ── Splash screen (optional) ──────────────────────── -->
+  <!-- Uncomment and provide a 480x280 BMP if you want a splash screen
+  <splash>
+    <file>splash.bmp</file>
+    <waitForWindow>true</waitForWindow>
+    <timeout>60</timeout>
+    <timeoutErr>true</timeoutErr>
+  </splash>
+  -->
+
+</launch4jConfig>
