@@ -1,6 +1,7 @@
 package com.hotelguest.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class Guest {
@@ -98,7 +99,7 @@ public class Guest {
     private CarCondition carCondition;
     private String comments;
     private GuestFlag flag;
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     private double roomRatePerNight;
     private double carRatePerDay;
     private BreakfastType breakfastType;
@@ -117,7 +118,7 @@ public class Guest {
         this.checkOutDate = LocalDate.now().plusDays(1);
         this.roomType = RoomType.DOUBLE; this.carHired = false; this.carType = null;
         this.carInsurance = false; this.carCondition = CarCondition.PENDING;
-        this.comments = ""; this.flag = GuestFlag.NONE; this.createdAt = LocalDate.now();
+        this.comments = ""; this.flag = GuestFlag.NONE; this.createdAt = LocalDateTime.now();
         this.roomRatePerNight = 0; this.carRatePerDay = 0;
         this.breakfastType = BreakfastType.NONE; this.breakfastPricePerPersonPerNight = 0;
         this.billItems = new ArrayList<>(); this.history = new ArrayList<>();
@@ -187,8 +188,8 @@ public class Guest {
     public void setComments(String c)                  { this.comments = c; }
     public GuestFlag getFlag()                         { return flag; }
     public void setFlag(GuestFlag f)                   { this.flag = f; }
-    public LocalDate getCreatedAt()                    { return createdAt; }
-    public void setCreatedAt(LocalDate d)              { this.createdAt = d; }
+    public LocalDateTime getCreatedAt()                    { return createdAt; }
+    public void setCreatedAt(LocalDateTime d)              { this.createdAt = d; }
     public double getRoomRatePerNight()                { return roomRatePerNight; }
     public void setRoomRatePerNight(double r)          { this.roomRatePerNight = r; }
     public double getCarRatePerDay()                   { return carRatePerDay; }

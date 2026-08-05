@@ -1,6 +1,6 @@
 package com.hotelguest.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class BillItem {
@@ -17,11 +17,11 @@ public class BillItem {
     // read it directly when present; the custom deserializer merges both.
     private Boolean isPaid;
 
-    private LocalDate date;
+    private LocalDateTime date;
 
     public BillItem() {
         this.id = UUID.randomUUID().toString();
-        this.date = LocalDate.now();
+        this.date = LocalDateTime.now();
     }
 
     public BillItem(String description, double amount, boolean paid) {
@@ -50,6 +50,6 @@ public class BillItem {
     public void setDescription(String d){ this.description = d; }
     public double getAmount()           { return amount; }
     public void setAmount(double a)     { this.amount = a; }
-    public LocalDate getDate()          { return date; }
-    public void setDate(LocalDate d)    { this.date = d; }
+    public LocalDateTime getDate()          { return date; }
+    public void setDate(LocalDateTime d)    { this.date = d; }
 }
