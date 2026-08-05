@@ -37,6 +37,10 @@ public class AddEditGuestTab {
     private final TextArea  taComments = new TextArea();
     private final ComboBox<Guest.GuestFlag>     cbFlag      = new ComboBox<>();
     private final Label lblStatus = new Label();
+    // Rate labels — stored so refreshCurrency() can update them
+    private final Label lblRoomRate  = new Label();
+    private final Label lblCarRate   = new Label();
+    private final Label lblBfRate    = new Label();
 
     public AddEditGuestTab(Guest existing, Runnable onSaved) {
         this.existing = existing;
@@ -93,16 +97,19 @@ public class AddEditGuestTab {
         grid.addRow(r++, lbl("Check-in Date *"), dpIn, lbl("Check-out Date *"), dpOut);
 
         grid.add(sec("Accommodation"), 0, r++, 4, 1);
-        grid.addRow(r++, lbl("Room Type"), cbRoom, lbl(rateLabel("Room Rate/Night")), tfRoomRate);
+        lblRoomRate.getStyleClass().add("form-label");
+        grid.addRow(r++, lbl("Room Type"), cbRoom, lblRoomRate, tfRoomRate);
 
         grid.add(sec("Breakfast"), 0, r++, 4, 1);
-        grid.addRow(r++, lbl("Breakfast Type"), cbBreakfast, lbl(rateLabel("Price/Person/Night")), tfBreakfast);
+        lblBfRate.getStyleClass().add("form-label");
+        grid.addRow(r++, lbl("Breakfast Type"), cbBreakfast, lblBfRate, tfBreakfast);
 
         grid.add(sec("Car Hire"), 0, r++, 4, 1);
         HBox carChk = new HBox(12, chkCar, cbCar, chkInsurance);
         carChk.setAlignment(Pos.CENTER_LEFT);
         grid.add(carChk, 0, r, 2, 1);
-        grid.addRow(r, new Label(), new Label(), lbl(rateLabel("Car Rate/Day")), tfCarRate);
+        lblCarRate.getStyleClass().add("form-label");
+        grid.addRow(r, new Label(), new Label(), lblCarRate, tfCarRate);
         r++;
         grid.addRow(r++, lbl("Car Condition"), cbCondition, new Label(), new Label());
 
@@ -173,6 +180,7 @@ public class AddEditGuestTab {
     }
 
     private void resetDefaults() {
+        updateRateLabels();
         tfName.clear(); tfAddress.clear(); tfCountry.clear(); tfPassport.clear();
         spGuests.getValueFactory().setValue(1);
         dpBirth.setValue(LocalDate.now().minusYears(30));
@@ -248,15 +256,20 @@ public class AddEditGuestTab {
     private Label lbl(String t)  { Label l = new Label(t); l.getStyleClass().add("form-label"); return l; }
     private Label sec(String t)  { Label l = new Label(t); l.getStyleClass().add("section-label"); return l; }
 
+
+    private void updateRateLabels() {
+        lblRoomRate.setText(rateLabel("Room Rate/Night"));
+        lblCarRate.setText(rateLabel("Car Rate/Day"));
+        lblBfRate.setText(rateLabel("Price/Person/Night"));
+    }
+
     /** Call this when the display currency changes so rates re-convert. */
     public void refreshCurrency() {
         if (existing != null) return; // editing keeps original booking currency
+        updateRateLabels();
         fillRoomRate();
         if (chkCar.isSelected()) fillCarRate();
         fillBreakfastPrice();
-        // Verify the currency is correctly set in store (defensive)
-        String cur = store.getSettings().getDisplayCurrency();
-        System.out.println("[AddEditGuestTab] refreshCurrency called, displayCurrency=" + cur);
     }
 
     public Node getRoot() { return root; }

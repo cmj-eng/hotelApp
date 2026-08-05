@@ -31,6 +31,9 @@ public class AddEditGuestDialog extends Dialog<Guest> {
     private final TextField                     tfBreakfast = new TextField("0.00");
     private final TextArea  taComments = new TextArea();
     private final ComboBox<Guest.GuestFlag>     cbFlag      = new ComboBox<>();
+    private final Label lblRoomRate = new Label();
+    private final Label lblCarRate  = new Label();
+    private final Label lblBfRate   = new Label();
 
     public AddEditGuestDialog(Guest existing) {
         this.source = existing;
@@ -64,6 +67,7 @@ public class AddEditGuestDialog extends Dialog<Guest> {
                 dpOut.setValue(nv.plusDays(1));
         });
 
+        updateRateLabels();
         if (existing != null) populate(existing);
         else {
             dpBirth.setValue(LocalDate.now().minusYears(30));
@@ -83,6 +87,12 @@ public class AddEditGuestDialog extends Dialog<Guest> {
             String err = validate();
             if (err != null) { new Alert(Alert.AlertType.WARNING, err, ButtonType.OK).showAndWait(); e.consume(); }
         });
+    }
+
+    private void updateRateLabels() {
+        lblRoomRate.setText(rateLabel("Room Rate/Night"));
+        lblCarRate.setText(rateLabel("Car Rate/Day"));
+        lblBfRate.setText(rateLabel("Price/Person/Night"));
     }
 
     private ScrollPane buildScrollPane() {
@@ -105,14 +115,17 @@ public class AddEditGuestDialog extends Dialog<Guest> {
         grid.addRow(r++, lbl("Check-out Date *"),    dpOut);
         grid.add(sec("Accommodation"),0,r++,2,1);
         grid.addRow(r++, lbl("Room Type"),           cbRoom);
-        grid.addRow(r++, lbl(rateLabel("Room Rate/Night")), tfRoomRate);
+        lblRoomRate.getStyleClass().add("form-label");
+        grid.addRow(r++, lblRoomRate, tfRoomRate);
         grid.add(sec("Breakfast"),0,r++,2,1);
         grid.addRow(r++, lbl("Breakfast Type"),      cbBreakfast);
-        grid.addRow(r++, lbl(rateLabel("Price/Person/Night")), tfBreakfast);
+        lblBfRate.getStyleClass().add("form-label");
+        grid.addRow(r++, lblBfRate, tfBreakfast);
         grid.add(sec("Car Hire"),0,r++,2,1);
         HBox carRow = new HBox(10, chkCar, cbCar, chkInsurance);
         grid.add(carRow, 0, r++, 2, 1);
-        grid.addRow(r++, lbl(rateLabel("Car Rate/Day")), tfCarRate);
+        lblCarRate.getStyleClass().add("form-label");
+        grid.addRow(r++, lblCarRate, tfCarRate);
         grid.addRow(r++, lbl("Car Condition"),       cbCondition);
         grid.add(sec("Guest Status"),0,r++,2,1);
         grid.addRow(r++, lbl("Status Flag"),         cbFlag);
