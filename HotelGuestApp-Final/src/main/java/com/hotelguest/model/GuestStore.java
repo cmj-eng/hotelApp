@@ -6,8 +6,9 @@ import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.*;
-import java.time.*;
-import java.time.format.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class GuestStore {
         if (guests.isEmpty()) insertSampleData();
     }
 
-    // ── CRUD ─────────────────────────────────────────────────────────────────
+    // ── CRUD ────────────────────────────────────────────────────────────────
 
     public List<Guest> getGuests() { return guests; }
 
@@ -72,23 +73,21 @@ public class GuestStore {
         save();
     }
 
-    // ── Aggregates ────────────────────────────────────────────────────────────
+    // ── Aggregates ───────────────────────────────────────────────────────────
 
-    public double getTotalRevenue()   { return guests.stream().mapToDouble(Guest::getTotalCharged).sum(); }
-    public double getTotalProfit()    { return guests.stream().mapToDouble(Guest::getProfit).sum(); }
-    public double getTotalOpenBills() { return guests.stream().mapToDouble(Guest::getOpenBill).sum(); }
+    public double getTotalRevenue()  { return guests.stream().mapToDouble(Guest::getTotalCharged).sum(); }
+    public double getTotalProfit()   { return guests.stream().mapToDouble(Guest::getProfit).sum(); }
+    public double getTotalOpenBills(){ return guests.stream().mapToDouble(Guest::getOpenBill).sum(); }
 
     public double getProfitForWeek(LocalDate date) {
         LocalDate start = date.with(java.time.DayOfWeek.MONDAY);
         LocalDate end   = start.plusWeeks(1);
         return guests.stream()
-            .filter(g -> g.getCheckInDate() != null
-                && !g.getCheckInDate().isBefore(start)
-                && g.getCheckInDate().isBefore(end))
+            .filter(g -> !g.getCheckInDate().isBefore(start) && g.getCheckInDate().isBefore(end))
             .mapToDouble(Guest::getProfit).sum();
     }
 
-    // ── Persistence ───────────────────────────────────────────────────────────
+    // ── Persistence ──────────────────────────────────────────────────────────
 
     private void save() {
         try (Writer w = Files.newBufferedWriter(dataFile)) {
@@ -105,7 +104,7 @@ public class GuestStore {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // ── Export / Import ───────────────────────────────────────────────────────
+    // ── Export / Import ──────────────────────────────────────────────────────
 
     public void exportToFile(File file) throws IOException {
         var container = new ExportContainer(guests);
@@ -116,100 +115,36 @@ public class GuestStore {
 
     public void importFromFile(File file) throws IOException {
         try (Reader r = new FileReader(file)) {
-            // First parse as a raw JSON tree so we can inspect it
-            JsonElement root = JsonParser.parseReader(r);
-            if (!root.isJsonObject()) throw new IOException("Invalid file format.");
-
-            JsonObject obj = root.getAsJsonObject();
-
-            // Support two shapes:
-            //  1. Our own export: { "version":1, "exportedAt":"...", "guests":[...] }
-            //  2. Raw list written by older versions: [...]
-            JsonArray guestArray;
-            if (obj.has("guests")) {
-                guestArray = obj.getAsJsonArray("guests");
-            } else {
-                throw new IOException("No 'guests' array found in file.");
+            ExportContainer container = gson.fromJson(r, ExportContainer.class);
+            if (container != null && container.guests != null) {
+                guests = container.guests;
+                save();
             }
-
-            Type listType = new TypeToken<List<Guest>>(){}.getType();
-            List<Guest> loaded = gson.fromJson(guestArray, listType);
-            if (loaded == null || loaded.isEmpty()) {
-                throw new IOException("File contained no guest records.");
-            }
-            guests = loaded;
-            save();
         }
     }
 
-    // ── Gson — tolerant date parsing ──────────────────────────────────────────
-    //
-    // The iOS Swift app exports LocalDate fields as full ISO-8601 timestamps,
-    // e.g. "2025-01-15T00:00:00+02:00" or "2025-01-15T00:00:00Z".
-    // The Java app writes plain dates like "2025-01-15".
-    // The deserializers below accept ALL of these formats.
-
-    private static LocalDate parseFlexibleDate(String s) {
-        if (s == null || s.isBlank()) return null;
-        // Plain date: 2025-01-15
-        try { return LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE); }
-        catch (DateTimeParseException ignored) {}
-        // Full ISO with offset: 2025-01-15T00:00:00+02:00 or Z
-        try { return OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDate(); }
-        catch (DateTimeParseException ignored) {}
-        // ISO instant: 2025-01-15T00:00:00Z
-        try { return Instant.parse(s).atZone(ZoneId.of("UTC")).toLocalDate(); }
-        catch (DateTimeParseException ignored) {}
-        // Local datetime without offset: 2025-01-15T00:00:00
-        try { return LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME).toLocalDate(); }
-        catch (DateTimeParseException ignored) {}
-        throw new JsonParseException("Cannot parse date: " + s);
-    }
-
-    private static LocalDateTime parseFlexibleDateTime(String s) {
-        if (s == null || s.isBlank()) return null;
-        // Plain local datetime
-        try { return LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME); }
-        catch (DateTimeParseException ignored) {}
-        // With timezone offset
-        try { return OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDateTime(); }
-        catch (DateTimeParseException ignored) {}
-        // Instant / Z suffix
-        try { return Instant.parse(s).atZone(ZoneId.of("UTC")).toLocalDateTime(); }
-        catch (DateTimeParseException ignored) {}
-        // Plain date only — treat as midnight
-        try { return LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay(); }
-        catch (DateTimeParseException ignored) {}
-        throw new JsonParseException("Cannot parse datetime: " + s);
-    }
+    // ── Gson with LocalDate support ──────────────────────────────────────────
 
     private static Gson buildGson() {
         return new GsonBuilder()
             .setPrettyPrinting()
-            // LocalDate — write as plain date, read anything
-            .registerTypeAdapter(LocalDate.class,
-                (JsonSerializer<LocalDate>)
-                    (src, type, ctx) -> new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE)))
-            .registerTypeAdapter(LocalDate.class,
-                (JsonDeserializer<LocalDate>)
-                    (json, type, ctx) -> parseFlexibleDate(json.getAsString()))
-            // LocalDateTime — write as plain datetime, read anything
-            .registerTypeAdapter(LocalDateTime.class,
-                (JsonSerializer<LocalDateTime>)
-                    (src, type, ctx) -> new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
-            .registerTypeAdapter(LocalDateTime.class,
-                (JsonDeserializer<LocalDateTime>)
-                    (json, type, ctx) -> parseFlexibleDateTime(json.getAsString()))
+            .registerTypeAdapter(LocalDate.class, (JsonSerializer<LocalDate>)
+                (src, type, ctx) -> new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE)))
+            .registerTypeAdapter(LocalDate.class, (JsonDeserializer<LocalDate>)
+                (json, type, ctx) -> LocalDate.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE))
+            .registerTypeAdapter(LocalDateTime.class, (JsonSerializer<LocalDateTime>)
+                (src, type, ctx) -> new JsonPrimitive(src.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+            .registerTypeAdapter(LocalDateTime.class, (JsonDeserializer<LocalDateTime>)
+                (json, type, ctx) -> LocalDateTime.parse(json.getAsString(), DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .create();
     }
 
-    // ── Sample data ───────────────────────────────────────────────────────────
+    // ── Sample data ──────────────────────────────────────────────────────────
 
     private void insertSampleData() {
         Guest g1 = new Guest();
         g1.setName("James Harrington");
-        g1.setAddress("14 Kensington Gardens, London");
-        g1.setCountry("United Kingdom");
+        g1.setAddress("14 Kensington Gardens, London, UK");
         g1.setPassportNumber("GB123456789");
         g1.setNumberOfGuests(2);
         g1.setRoomType(Guest.RoomType.SUITE);
@@ -224,8 +159,7 @@ public class GuestStore {
 
         Guest g2 = new Guest();
         g2.setName("Sofia Marchetti");
-        g2.setAddress("Via Roma 22, Milan");
-        g2.setCountry("Italy");
+        g2.setAddress("Via Roma 22, Milan, Italy");
         g2.setPassportNumber("IT987654321");
         g2.setRoomType(Guest.RoomType.SINGLE);
         g2.setRoomRatePerNight(95);
@@ -235,8 +169,7 @@ public class GuestStore {
 
         Guest g3 = new Guest();
         g3.setName("Robert Dunning");
-        g3.setAddress("88 Fifth Avenue, New York");
-        g3.setCountry("USA");
+        g3.setAddress("88 Fifth Avenue, New York, USA");
         g3.setPassportNumber("US556677889");
         g3.setNumberOfGuests(4);
         g3.setRoomType(Guest.RoomType.FAMILY_ROOM);
@@ -252,7 +185,7 @@ public class GuestStore {
         save();
     }
 
-    // ── Export container ──────────────────────────────────────────────────────
+    // ── Inner container ──────────────────────────────────────────────────────
 
     static class ExportContainer {
         int version = 1;
