@@ -215,6 +215,11 @@ public class GuestStore {
         return null;
     }
 
+    private static <E extends Enum<E>> JsonSerializer<E> enumSerializer(
+            java.util.function.Function<E, String> labelGetter) {
+        return (src, type, ctx) -> new JsonPrimitive(labelGetter.apply(src));
+    }
+
     private static <E extends Enum<E>> JsonDeserializer<E> enumDeserializer(
             Class<E> cls, java.util.function.Function<E, String> labelGetter) {
         return (json, type, ctx) -> {
@@ -240,15 +245,27 @@ public class GuestStore {
             .registerTypeAdapter(LocalDateTime.class,
                 (JsonDeserializer<LocalDateTime>) (json, t, ctx) -> parseFlexibleDateTime(json.getAsString()))
             .registerTypeAdapter(Guest.RoomType.class,
+                enumSerializer(Guest.RoomType::getLabel))
+            .registerTypeAdapter(Guest.RoomType.class,
                 enumDeserializer(Guest.RoomType.class, Guest.RoomType::getLabel))
+            .registerTypeAdapter(Guest.CarType.class,
+                enumSerializer(Guest.CarType::getLabel))
             .registerTypeAdapter(Guest.CarType.class,
                 enumDeserializer(Guest.CarType.class, Guest.CarType::getLabel))
             .registerTypeAdapter(Guest.GuestFlag.class,
+                enumSerializer(Guest.GuestFlag::getLabel))
+            .registerTypeAdapter(Guest.GuestFlag.class,
                 enumDeserializer(Guest.GuestFlag.class, Guest.GuestFlag::getLabel))
+            .registerTypeAdapter(Guest.BreakfastType.class,
+                enumSerializer(Guest.BreakfastType::getLabel))
             .registerTypeAdapter(Guest.BreakfastType.class,
                 enumDeserializer(Guest.BreakfastType.class, Guest.BreakfastType::getLabel))
             .registerTypeAdapter(Guest.CarCondition.class,
+                enumSerializer(Guest.CarCondition::getLabel))
+            .registerTypeAdapter(Guest.CarCondition.class,
                 enumDeserializer(Guest.CarCondition.class, Guest.CarCondition::getLabel))
+            .registerTypeAdapter(HistoryEvent.EventType.class,
+                enumSerializer(Enum::name))
             .registerTypeAdapter(HistoryEvent.EventType.class,
                 enumDeserializer(HistoryEvent.EventType.class, Enum::name))
             .create();
