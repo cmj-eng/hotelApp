@@ -19,6 +19,7 @@ public class SettingsTab {
     private final VBox content = new VBox(14);
     private final ComboBox<String> cbCurrency = new ComboBox<>();
     private final Label lblRatesUpdated = new Label("Not yet fetched");
+    private final javafx.scene.control.Label lblRatesPreview = new javafx.scene.control.Label("");
     private final Map<String, TextField> roomFields = new LinkedHashMap<>();
     private final Map<String, TextField> carFields  = new LinkedHashMap<>();
     private final Map<String, TextField> bfFields   = new LinkedHashMap<>();
@@ -65,10 +66,13 @@ public class SettingsTab {
                     lblRatesUpdated.setText(store.getSettings().getRatesUpdatedAt() != null
                         ? store.getSettings().getRatesUpdatedAt() : "Updated");
                     populateCurrencyCombo();
+                    updateRatesPreview();
                 });
             }).start();
         });
         grid.addRow(3, new Label(), refreshBtn);
+        lblRatesPreview.setStyle("-fx-text-fill:#888;-fx-font-size:12px;");
+        grid.addRow(4, new Label("Rate preview:"), lblRatesPreview);
         content.getChildren().add(grid);
     }
 
@@ -118,6 +122,23 @@ public class SettingsTab {
         return g;
     }
 
+    private void updateRatesPreview() {
+        var rates = store.getSettings().getExchangeRates();
+        if (rates == null || rates.isEmpty()) {
+            lblRatesPreview.setText("No rates loaded yet — click Refresh Exchange Rates");
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String cur : new String[]{"EUR","USD","GBP","ZAR"}) {
+            Double rate = rates.get(cur);
+            if (rate != null && rate > 0) {
+                String sym = switch(cur){case "EUR"->"€";case "USD"->"$";case "GBP"->"£";default->cur+" ";};
+                sb.append(String.format("K1,000 = %s%.2f %s    ", sym, 1000*rate, cur));
+            }
+        }
+        lblRatesPreview.setText(sb.length()>0 ? sb.toString().trim() : "Rates available — select a currency above");
+    }
+
     private void populateCurrencyCombo() {
         String prev = cbCurrency.getValue();
         cbCurrency.getItems().clear();
@@ -134,6 +155,7 @@ public class SettingsTab {
         AppSettings s = store.getSettings();
         populateCurrencyCombo();
         if (s.getRatesUpdatedAt() != null) lblRatesUpdated.setText(s.getRatesUpdatedAt());
+        updateRatesPreview();
         s.getRoomRates().forEach((k,v) -> { if (roomFields.containsKey(k)) roomFields.get(k).setText(String.format("%.2f",v)); });
         s.getCarRates().forEach((k,v)  -> { if (carFields.containsKey(k))  carFields.get(k).setText(String.format("%.2f",v)); });
         s.getBreakfastPrices().forEach((k,v) -> { if (bfFields.containsKey(k)) bfFields.get(k).setText(String.format("%.2f",v)); });

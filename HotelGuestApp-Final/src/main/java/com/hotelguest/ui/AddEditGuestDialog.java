@@ -71,8 +71,12 @@ public class AddEditGuestDialog extends Dialog<Guest> {
             fillRoomRate();
         }
 
-        getDialogPane().setContent(buildScrollPane());
+        ScrollPane sp = buildScrollPane();
+        sp.setPrefHeight(550);
+        sp.setMaxHeight(Double.MAX_VALUE);
+        getDialogPane().setContent(sp);
         getDialogPane().setPrefWidth(580);
+        getDialogPane().setPrefHeight(680);
         getDialogPane().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         setResultConverter(btn -> btn != ButtonType.OK ? null : buildGuest());
         okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, e -> {

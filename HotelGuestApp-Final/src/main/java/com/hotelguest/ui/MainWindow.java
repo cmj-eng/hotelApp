@@ -47,6 +47,10 @@ public class MainWindow extends Application {
             if (now == t3) finance.refresh();
             if (now == t4) history.refresh();
             if (now == t5) settings.refresh();
+            // Refresh currency conversion in forms whenever the user navigates to them
+            // (in case they changed currency in Settings)
+            if (now == t2) addGuest.refreshCurrency();
+            if (now == t1) guestList.refresh();
         });
 
         Scene scene = new Scene(tabs, 1150, 740);

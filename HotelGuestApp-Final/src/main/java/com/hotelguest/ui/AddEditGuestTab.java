@@ -248,5 +248,17 @@ public class AddEditGuestTab {
     private Label lbl(String t)  { Label l = new Label(t); l.getStyleClass().add("form-label"); return l; }
     private Label sec(String t)  { Label l = new Label(t); l.getStyleClass().add("section-label"); return l; }
 
+    /** Call this when the display currency changes so rates re-convert. */
+    public void refreshCurrency() {
+        // Re-fill rate fields in new display currency
+        if (existing == null) {
+            fillRoomRate();
+            if (chkCar.isSelected()) fillCarRate();
+            fillBreakfastPrice();
+        }
+        // Update column labels — rebuild them is complex; easiest is a tooltip
+        // so we just update the rate fields which is the functional requirement
+    }
+
     public Node getRoot() { return root; }
 }
