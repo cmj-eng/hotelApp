@@ -250,14 +250,13 @@ public class AddEditGuestTab {
 
     /** Call this when the display currency changes so rates re-convert. */
     public void refreshCurrency() {
-        // Re-fill rate fields in new display currency
-        if (existing == null) {
-            fillRoomRate();
-            if (chkCar.isSelected()) fillCarRate();
-            fillBreakfastPrice();
-        }
-        // Update column labels — rebuild them is complex; easiest is a tooltip
-        // so we just update the rate fields which is the functional requirement
+        if (existing != null) return; // editing keeps original booking currency
+        fillRoomRate();
+        if (chkCar.isSelected()) fillCarRate();
+        fillBreakfastPrice();
+        // Verify the currency is correctly set in store (defensive)
+        String cur = store.getSettings().getDisplayCurrency();
+        System.out.println("[AddEditGuestTab] refreshCurrency called, displayCurrency=" + cur);
     }
 
     public Node getRoot() { return root; }

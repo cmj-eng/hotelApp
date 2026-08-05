@@ -50,6 +50,12 @@ public class SettingsTab {
         ColumnConstraints c2 = new ColumnConstraints(); c2.setHgrow(Priority.ALWAYS);
         grid.getColumnConstraints().addAll(c1, c2);
 
+        cbCurrency.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && !newVal.equals(store.getSettings().getDisplayCurrency())) {
+                store.getSettings().setDisplayCurrency(newVal);
+                store.saveSettings();
+            }
+        });
         grid.addRow(0, new Label("Display Currency:"), cbCurrency);
         grid.addRow(1, new Label("Base Currency:"), new Label("ZMW (Zambian Kwacha) — all prices stored in ZMW"));
         grid.addRow(2, new Label("Rates last updated:"), lblRatesUpdated);

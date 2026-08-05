@@ -47,9 +47,10 @@ public class MainWindow extends Application {
             if (now == t3) finance.refresh();
             if (now == t4) history.refresh();
             if (now == t5) settings.refresh();
-            // Refresh currency conversion in forms whenever the user navigates to them
-            // (in case they changed currency in Settings)
+            // Always refresh currency when navigating to New Guest
+            // Currency is already saved immediately on combo change in SettingsTab
             if (now == t2) addGuest.refreshCurrency();
+            // Refresh list so charged column updates with correct booking currency display
             if (now == t1) guestList.refresh();
         });
 
