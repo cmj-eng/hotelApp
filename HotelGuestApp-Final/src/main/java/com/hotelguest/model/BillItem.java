@@ -7,7 +7,16 @@ public class BillItem {
     private String id;
     private String description;
     private double amount;
+
+    // Gson serialises this as "paid".
+    // Swift Codable serialises the same field as "isPaid".
+    // The GuestStore deserializer handles both — see buildGson().
     private boolean paid;
+
+    // Swift also writes "isPaid" — we keep this field so Gson can
+    // read it directly when present; the custom deserializer merges both.
+    private Boolean isPaid;
+
     private LocalDate date;
 
     public BillItem() {
@@ -22,14 +31,25 @@ public class BillItem {
         this.paid = paid;
     }
 
-    public String getId()              { return id; }
-    public void setId(String id)       { this.id = id; }
-    public String getDescription()     { return description; }
+    /**
+     * Returns true if either "paid" (Java) or "isPaid" (Swift) was true.
+     * Called after Gson populates the object.
+     */
+    public boolean isPaid() {
+        return paid || Boolean.TRUE.equals(isPaid);
+    }
+
+    public void setPaid(boolean p) {
+        this.paid = p;
+        this.isPaid = p;   // keep both in sync so export works either way
+    }
+
+    public String getId()               { return id; }
+    public void setId(String id)        { this.id = id; }
+    public String getDescription()      { return description; }
     public void setDescription(String d){ this.description = d; }
-    public double getAmount()          { return amount; }
-    public void setAmount(double a)    { this.amount = a; }
-    public boolean isPaid()            { return paid; }
-    public void setPaid(boolean p)     { this.paid = p; }
-    public LocalDate getDate()         { return date; }
-    public void setDate(LocalDate d)   { this.date = d; }
+    public double getAmount()           { return amount; }
+    public void setAmount(double a)     { this.amount = a; }
+    public LocalDate getDate()          { return date; }
+    public void setDate(LocalDate d)    { this.date = d; }
 }
