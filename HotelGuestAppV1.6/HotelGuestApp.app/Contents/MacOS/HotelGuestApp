@@ -1,0 +1,19 @@
+#!/bin/bash
+# Launcher — finds Java and starts the app
+SCRIPT="$(cd "$(dirname "$0")" && pwd)"
+JAR="$SCRIPT/../Java/HotelGuestApp.jar"
+
+# Try bundled Java first, then system Java
+for JAVA_TRY in \
+  "$SCRIPT/../Resources/jre/bin/java" \
+  "/usr/bin/java" \
+  "/usr/bin/java" \
+  "/usr/local/bin/java"; do
+  if [ -x "$JAVA_TRY" ]; then
+    exec "$JAVA_TRY" -jar "$JAR"
+    break
+  fi
+done
+
+osascript -e 'display alert "Java not found" message "Install Java 17+ from https://adoptium.net" as critical'
+exit 1
